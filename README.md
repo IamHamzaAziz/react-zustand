@@ -1,12 +1,83 @@
-# React + Vite
+# React State Management with Zustand
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A guide for using Zustand in React applications. Demonstrating both basic and persistent state management using Zustand with React.
 
-Currently, two official plugins are available:
+## Install Zustand:
+   ```bash
+   npm install zustand
+   # or
+   yarn add zustand
+   # or
+   pnpm add zustand
+   ```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Basic Usage
 
-## Expanding the ESLint configuration
+### 1. Create a Store
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Create a store file (`store.js` or `store.jsx`):
+
+```javascript
+import { create } from 'zustand'
+
+const useStore = create((set) => ({
+  // State
+  bears: 0,
+  
+  // Actions
+  increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
+  removeAllBears: () => set({ bears: 0 }),
+  updateBears: (newBears) => set({ bears: newBears }),
+}))
+
+export default useStore
+```
+
+### 2. Use the Store in Components
+
+```jsx
+import useStore from './store'
+
+function BearCounter() {
+  const bears = useStore(state => state.bears)
+  const increasePopulation = useStore((state) => state.increasePopulation)
+  const removeAllBears = useStore((state) => state.removeAllBears)
+  const updateBears = useStore((state) => state.updateBears)
+
+  return (
+    <div>
+      Total Bears: {bears}
+      <br />
+      <button onClick={increasePopulation}>Add a Bear</button>
+      <button onClick={removeAllBears}>Remove All Bears</button>
+      <button onClick={() => updateBears(20)}>Update Bears</button>
+    </div>
+  )
+}
+```
+
+## Persisting State
+
+Zustand makes it easy to persist state to localStorage:
+
+```javascript
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+
+const useStore = create(
+  persist(
+    (set) => ({
+      bears: 0,
+      increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
+      removeAllBears: () => set({ bears: 0 }),
+      updateBears: (newBears) => set({ bears: newBears }),
+    }),
+    {
+      name: 'bears-storage', // unique name for the storage key
+      storage: createJSONStorage(() => localStorage), // or sessionStorage
+    }
+  )
+)
+
+export default useStore
+```
